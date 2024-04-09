@@ -1,0 +1,22 @@
+name: Enforce PR for Main Branch
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  enforce-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Check if push is from a PR
+        id: check-pr
+        run: |
+          if [ "$GITHUB_EVENT_NAME" == "push" ]; then
+            echo "This push is not from a pull request."
+            exit 1
+          fi
