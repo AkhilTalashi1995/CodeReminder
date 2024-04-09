@@ -1,4 +1,4 @@
-name: Enforce PR for Main Branch
+name: Check Pull Request Created Date
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  enforce-pr:
+  check-created-date:
     runs-on: ubuntu-latest
 
     steps:
@@ -16,7 +16,18 @@ jobs:
       - name: Check if push is from a PR
         id: check-pr
         run: |
-          if [ "$GITHUB_EVENT_NAME" == "push" ]; then
+          if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
+            echo "This push is from a pull request."
+            PR_CREATED_AT=$(jq -r '.pull_request.created_at' $GITHUB_EVENT_PATH)
+            MAIN_BRANCH_DATE=$(git show -s --format=%ci origin/main)
+
+            if [ "$PR_CREATED_AT" \< "$MAIN_BRANCH_DATE" ]; then
+              echo "PR was created before merge to main branch."
+            else
+              echo "PR was created after merge to main branch."
+              exit 1
+            fi
+          else
             echo "This push is not from a pull request."
             exit 1
           fi
